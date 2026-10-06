@@ -35,6 +35,17 @@ npm run lint       # run ESLint
 
 To try offline mode, run `npm run build && npm run preview`, open the app once, then switch the browser DevTools to **Offline** and reload.
 
+## Docker
+
+Build and start the production app with Docker:
+
+```bash
+docker build -t smart-reader-search .
+docker run --rm -p 8080:80 smart-reader-search
+```
+
+Open [http://localhost:8080](http://localhost:8080). The container serves the production build with Nginx. The service worker and manifest are included, so the PWA can be installed and used offline after the first visit. For access from other devices or a production deployment, serve it over HTTPS to meet browser PWA requirements.
+
 ## Project Structure
 
 ```text
@@ -47,10 +58,11 @@ src/
 │                  # useInstallPrompt, useOnlineStatus
 ├── components/    # Reader, Paragraph, SearchBar, Suggestions,
 │                  # ResultNavigator, SearchOptions, InstallButton, ...
-├── data/          # sample-text.ts (the searchable text)
-└── pwa/            # online status and install prompt hooks
-vite.config.ts      # Workbox service worker generation
+└── data/          # sample-text.ts (the searchable text)
+vite.config.ts     # Workbox service worker generation
 public/            # manifest and icons
+Dockerfile         # multi-stage production image build
+nginx.conf         # static hosting, SPA fallback, and PWA cache headers
 ```
 
 The text to search lives in `src/data/sample-text.ts`. Replace the paragraphs there to search a different text.
@@ -83,10 +95,10 @@ The index is built once when the app loads. MiniSearch narrows each query to can
 
 ## PWA
 
-- `manifest.webmanifest` makes the app installable, and an Install button appears when the browser offers installation.
-- `vite-plugin-pwa` generates a Workbox service worker that precaches the app shell and updates automatically.
-- The service worker provides the precached page when offline and removes outdated caches.
-- The generated registration script is included in production builds only.
+- `public/manifest.json` provides the app’s install metadata and icons. An Install button appears when the browser offers an install prompt.
+- `vite-plugin-pwa` generates a Workbox service worker that precaches app assets and updates automatically.
+- The service worker serves the app shell for navigation while offline and removes outdated caches.
+- The generated service worker registration script is included in production builds.
 
 ## Testing
 
